@@ -32,6 +32,7 @@ ibc-proto        = { version = "0.20.1", path = "../proto" }
 ibc-telemetry    = { version = "0.19.0", path = "../telemetry", optional = true }
 ibc-relayer-rest = { version = "0.19.0", path = "../relayer-rest", optional = true }
 
+actix = "0.13"
 clap = { version = "3.2", features = ["cargo"] }
 clap_complete = "3.2"
 humantime = "2.1"
@@ -56,6 +57,10 @@ flex-error = { version = "0.4.4", default-features = false, features = ["std", "
 signal-hook = "0.3.14"
 dialoguer = "0.10.2"
 console = "0.15.1"
+
+[dependencies.cosmos-sdk-proto]
+package = "cosmos-sdk-proto-althea"
+version = "0.13"
 
 [dependencies.tendermint-proto]
 version = "=0.23.9"
