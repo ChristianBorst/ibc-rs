@@ -7,12 +7,9 @@ use abscissa_core::{Command, FrameworkErrorKind, Runnable};
 use actix::System;
 
 use cosmos_sdk_proto::cosmos::base::tendermint::v1beta1::service_client::ServiceClient as TmServiceClient;
-use cosmos_sdk_proto::cosmos::base::tendermint::v1beta1::{
-    GetLatestBlockRequest, GetLatestBlockResponse,
-};
+use cosmos_sdk_proto::cosmos::base::tendermint::v1beta1::GetLatestBlockRequest;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::service_client::ServiceClient as TxServiceClient;
 use cosmos_sdk_proto::cosmos::tx::v1beta1::GetTxRequest;
-use cosmos_sdk_proto::tendermint::abci::EventAttribute;
 use ibc::core::ics02_client::height::Height as IbcHeight;
 use ibc::core::ics04_channel as Channel;
 use ibc::core::ics04_channel::events as ChannelEvents;
@@ -27,7 +24,6 @@ use ibc_relayer::event::IbcEventWithHeight;
 use ibc_relayer::link::error::LinkError;
 use ibc_relayer::link::operational_data::TrackedEvents;
 use ibc_relayer::link::{Link, LinkParameters};
-use tendermint::block::Height;
 
 use crate::application::app_config;
 use crate::cli_utils::spawn_chain_counterparty;
@@ -295,8 +291,6 @@ async fn do_async_stuff(shelf: &ClearManualCmd) {
         }
     }
 
-    let mut problem_ev: Option<IbcEvent> = None;
-
     // Construct links in both directions.
     let opts = LinkParameters {
         src_port_id: shelf.port_id.clone(),
@@ -310,7 +304,6 @@ async fn do_async_stuff(shelf: &ClearManualCmd) {
         Ok(link) => link,
         Err(e) => Output::error(format!("{}", e)).exit(),
     };
-    let system = System::new();
     // Schedule RecvPacket messages for pending packets in both directions.
     // This may produce pending acks which will be processed in the next phase.
     let src_grpc_addr = chains
@@ -370,13 +363,16 @@ async fn do_async_stuff(shelf: &ClearManualCmd) {
     for ev in events {
         if ev.r#type == SEND_PACKET_EVENT_KEY {
             let mut attrs = HashMap::new();
-            ev.attributes.into_iter().map(|att| {
-                let k_bytes = att.key;
-                let v_bytes = att.value;
-                let key = std::str::from_utf8(&k_bytes).expect("Non-UTF8 Key!");
-                let val = std::str::from_utf8(&v_bytes).expect("Non-UTF8 Value!");
-                attrs.insert(key.to_string(), val.to_string())
-            });
+            ev.attributes
+                .into_iter()
+                .map(|att| {
+                    let k_bytes = att.key;
+                    let v_bytes = att.value;
+                    let key = std::str::from_utf8(&k_bytes).expect("Non-UTF8 Key!");
+                    let val = std::str::from_utf8(&v_bytes).expect("Non-UTF8 Value!");
+                    attrs.insert(key.to_string(), val.to_string())
+                })
+                .collect::<Vec<_>>();
             attributes = Some(attrs);
         }
     }
@@ -469,7 +465,7 @@ async fn do_async_stuff(shelf: &ClearManualCmd) {
     let ibc_event = IbcEventWithHeight::new(ibc_event, event_height);
     let tracking_id = TrackingId::new_static("packet-recv");
     let tracked_event = TrackedEvents::new(vec![ibc_event.clone()], tracking_id.clone());
-    let fwd_operational_data = fwd_link.a_to_b.events_to_operational_data(tracked_event);
+    let _fwd_operational_data = fwd_link.a_to_b.events_to_operational_data(tracked_event);
 
     let mut results = vec![];
     // In case of zero connection delay, the op. data will already be ready
@@ -500,7 +496,7 @@ async fn do_async_stuff(shelf: &ClearManualCmd) {
     }
 
     let tracked_event = TrackedEvents::new(vec![ibc_event.clone()], tracking_id.clone());
-    let rev_operational_data = rev_link.a_to_b.events_to_operational_data(tracked_event);
+    let _rev_operational_data = rev_link.a_to_b.events_to_operational_data(tracked_event);
 
     let mut results = vec![];
     // In case of zero connection delay, the op. data will already be ready
