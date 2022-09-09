@@ -91,7 +91,7 @@ impl Resubmit {
 pub struct RelayPath<ChainA: ChainHandle, ChainB: ChainHandle> {
     channel: Channel<ChainA, ChainB>,
 
-    pub(crate) path_id: PathIdentifiers,
+    pub path_id: PathIdentifiers,
 
     // Operational data, targeting both the source and destination chain.
     // These vectors of operational data are ordered decreasingly by
@@ -104,13 +104,13 @@ pub struct RelayPath<ChainA: ChainHandle, ChainB: ChainHandle> {
     pub dst_operational_data: Queue<OperationalData>,
 
     // Toggle for the transaction confirmation mechanism.
-    confirm_txes: bool,
+    pub confirm_txes: bool,
 
     // Stores pending (i.e., unconfirmed) operational data.
     // The relaying path periodically tries to confirm these pending
     // transactions if [`confirm_txes`] is true.
-    pending_txs_src: PendingTxs<ChainA>,
-    pending_txs_dst: PendingTxs<ChainB>,
+    pub pending_txs_src: PendingTxs<ChainA>,
+    pub pending_txs_dst: PendingTxs<ChainB>,
 }
 
 impl<ChainA: ChainHandle, ChainB: ChainHandle> RelayPath<ChainA, ChainB> {
@@ -540,16 +540,16 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> RelayPath<ChainA, ChainB> {
                     }
                 }
                 IbcEvent::SendPacket(ref send_packet_ev) => {
-                    if self.send_packet_event_handled(send_packet_ev)? {
-                        debug!("{} already handled", send_packet_ev);
-                        (None, None)
-                    } else {
-                        self.build_recv_or_timeout_from_send_packet_event(
-                            send_packet_ev,
-                            &dst_latest_info,
-                            event_with_height.height,
-                        )?
-                    }
+                    // if self.send_packet_event_handled(send_packet_ev)? {
+                    // debug!("{} already handled", send_packet_ev);
+                    // (None, None)
+                    // } else {
+                    self.build_recv_or_timeout_from_send_packet_event(
+                        send_packet_ev,
+                        &dst_latest_info,
+                        event_with_height.height,
+                    )?
+                    // }
                 }
                 IbcEvent::WriteAcknowledgement(ref write_ack_ev) => {
                     if self
@@ -676,7 +676,7 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> RelayPath<ChainA, ChainB> {
     ///
     /// Side effects: may schedule a new operational data targeting the source chain, comprising
     /// new timeout messages.
-    pub(crate) fn regenerate_operational_data(
+    pub fn regenerate_operational_data(
         &self,
         initial_odata: OperationalData,
     ) -> Option<OperationalData> {
@@ -1169,7 +1169,9 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> RelayPath<ChainA, ChainB> {
             )
             .map_err(|e| LinkError::packet_proofs_constructor(self.src_chain().id(), e))?;
 
+        println!("Generated packet proof: {:?}", proofs);
         let msg = MsgRecvPacket::new(packet.clone(), proofs.clone(), self.dst_signer()?);
+        println!("Generated MsgRecvPacket: {:?}", msg);
 
         trace!(
             "built recv_packet msg {}, proofs at height {}",
@@ -1320,10 +1322,10 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> RelayPath<ChainA, ChainB> {
     fn build_recv_or_timeout_from_send_packet_event(
         &self,
         event: &SendPacket,
-        dst_info: &ChainStatus,
+        _dst_info: &ChainStatus,
         height: Height,
     ) -> Result<(Option<Any>, Option<Any>), LinkError> {
-        let timeout = self.build_timeout_from_send_packet_event(event, dst_info)?;
+        let timeout = None; //self.build_timeout_from_send_packet_event(event, dst_info)?;
         if timeout.is_some() {
             Ok((None, timeout))
         } else {
@@ -1727,7 +1729,7 @@ impl<ChainA: ChainHandle, ChainB: ChainHandle> RelayPath<ChainA, ChainB> {
 
     // we need fully qualified ChainId to avoid unneeded imports warnings
     #[cfg(feature = "telemetry")]
-    fn target_info(
+    pub fn target_info(
         &self,
         target: OperationalDataTarget,
     ) -> (

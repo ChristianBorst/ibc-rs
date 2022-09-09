@@ -23,10 +23,6 @@ pub struct Height {
 
 impl Height {
     pub fn new(revision_number: u64, revision_height: u64) -> Result<Self, Error> {
-        if revision_height == 0 {
-            return Err(Error::invalid_height());
-        }
-
         Ok(Self {
             revision_number,
             revision_height,

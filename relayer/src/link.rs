@@ -14,12 +14,12 @@ pub mod cli;
 pub mod error;
 pub mod operational_data;
 
-mod packet_events;
-mod pending;
-mod relay_path;
-mod relay_sender;
-mod relay_summary;
-mod tx_hashes;
+pub mod packet_events;
+pub mod pending;
+pub mod relay_path;
+pub mod relay_sender;
+pub mod relay_summary;
+pub mod tx_hashes;
 
 use tx_hashes::TxHashes;
 

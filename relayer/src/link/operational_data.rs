@@ -20,7 +20,7 @@ use crate::link::error::LinkError;
 use crate::link::RelayPath;
 
 /// The chain that the events associated with a piece of [`OperationalData`] are bound for.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum OperationalDataTarget {
     /// The chain which generated the events associated with the `OperationalData`.
     Source,
@@ -74,7 +74,7 @@ impl TrackedEvents {
 ///
 /// Comprises the proto-encoded packet message,
 /// alongside the event which generated it.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TransitMessage {
     pub event_with_height: IbcEventWithHeight,
     pub msg: Any,
@@ -83,7 +83,7 @@ pub struct TransitMessage {
 /// Holds all the necessary information for handling a batch of in-transit messages. This includes
 /// an event received from a chain along with any other packets related to the event (i.e.
 /// 'receive' or 'timeout' packets) that the relayer has to submit in response to the event.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct OperationalData {
     /// Represents the height for the proofs in all the messages. Note that this is the height
     /// at which the proofs are queried. For example, for Tendermint chains, a client consensus
@@ -328,7 +328,7 @@ impl OperationalData {
 
 /// A struct that holds everything that is required to calculate and deal with the connection-delay
 /// feature.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct ConnectionDelay {
     delay: Duration,
     scheduled_time: Instant,
