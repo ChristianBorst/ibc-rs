@@ -8,7 +8,7 @@ resolver = "2"
 ibc = { path = "../../modules", default-features = false }
 ibc-proto = { path = "../../proto", default-features = false }
 tendermint = { version = "0.23.9", default-features = false }
-tendermint-proto = { version = "0.23.9", default-features = false }
+tendermint-proto = { version = "0.29.1", default-features = false }
 tendermint-light-client-verifier = { version = "0.23.9", default-features = false }
 
 sp-core = { version = "5.0.0", default-features = false, optional = true }
